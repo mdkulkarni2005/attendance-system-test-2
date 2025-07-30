@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  phone     String?  @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+
+  studentProfile StudentProfile?
+  teacherProfile TeacherProfile?
+
+  AttendanceRecords AttendanceRecord[]
+}
+
+model StudentProfile {
+  id         String @id @default(cuid())
+  userId     String @unique
+  user       User   @relation(fields: [userId], references: [id])
+  name       String
+  rollNo     String @unique
+  sapId      String @unique
+  department String
+  year       Int
+
+  attendanceRecords AttendanceRecord[]
+}
+
+model TeacherProfile {
+  id         String @id @default(cuid())
+  userId     String @unique
+  user       User   @relation(fields: [userId], references: [id])
+  name       String
+  department String
+  yearsOfExp Int
+
+  sessions AttendanceSession[]
+}
+
+model AttendanceSession {
+  id            String   @id @default(cuid())
+  teacherId     String
+  teacher       TeacherProfile @relation(fields: [teacherId], references: [id])
+  subject       String
+  department    String
+  year          Int
+  createdAt     DateTime @default(now())
+  isActive      Boolean  @default(true)
+
+  attendanceRecords AttendanceRecord[]
+
+  @@index([department, year])
+}
+
+model AttendanceRecord {
+  id         String   @id @default(cuid())
+  sessionId  String
+  studentId  String
+  userId     String
+  status     AttendanceStatus
+  markedAt   DateTime @default(now())
+
+  session    AttendanceSession @relation(fields: [sessionId], references: [id])
+  student    StudentProfile    @relation(fields: [studentId], references: [id])
+  user       User              @relation(fields: [userId], references: [id])
+
+  locationPing LocationPing?
+}
+
+model LocationPing {
+  id           String   @id @default(cuid())
+  attendanceId String   @unique
+  latitude     Float
+  longitude    Float
+  accuracy     Float?
+  timestamp    DateTime @default(now())
+
+  attendance AttendanceRecord @relation(fields: [attendanceId], references: [id])
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
