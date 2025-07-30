@@ -97,11 +97,15 @@ export default function TeacherSessionManager({
                         <SelectValue placeholder="Select subject" />
                       </SelectTrigger>
                       <SelectContent>
-                        {user?.subjects?.map((subject: string) => (
-                          <SelectItem key={subject} value={subject}>
-                            {subject}
-                          </SelectItem>
-                        )) || <SelectItem value="">No subjects available</SelectItem>}
+                        {Array.isArray(user?.subjects) && user.subjects.length > 0 ? (
+                          user.subjects.map((subject: string) => (
+                            <SelectItem key={subject} value={subject}>
+                              {subject}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="" disabled>No subjects available</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>

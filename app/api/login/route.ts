@@ -3,18 +3,27 @@ import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
 export async function POST(req: NextRequest) {
-  const { email, password } = await req.json();
-  if (!email || !password) {
-    return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
+  const { email, password, role } = await req.json();
+  if (!email || !password || !role) {
+    return NextResponse.json({ error: 'Email, password, and role are required' }, { status: 400 });
   }
 
-  // Find user with student role
+  // Find user by email
   const user = await prisma.user.findUnique({
     where: { email },
-    include: { studentProfile: true },
+    include: { studentProfile: true, teacherProfile: true },
   });
-  if (!user || user.role !== 'STUDENT' || !user.studentProfile) {
-    return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+  if (!user || user.role !== role) {
+    return NextResponse.json({ error: 'Invalid credentials or role' }, { status: 401 });
+  }
+
+  // For students, ensure studentProfile exists
+  if (role === 'STUDENT' && !user.studentProfile) {
+    return NextResponse.json({ error: 'Invalid credentials or role' }, { status: 401 });
+  }
+  // For teachers, ensure teacherProfile exists
+  if (role === 'TEACHER' && !user.teacherProfile) {
+    return NextResponse.json({ error: 'Invalid credentials or role' }, { status: 401 });
   }
 
   // Compare password (assuming passwords are hashed)

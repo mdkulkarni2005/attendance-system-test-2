@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('STUDENT');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -17,17 +18,17 @@ export default function LoginPage() {
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, role }),
     });
     setLoading(false);
     if (res.ok) {
+      // Always redirect to home page, dashboard will be chosen by role
       router.push('/');
     } else {
       try {
         const err = await res.json();
         setError(err.error || 'Login failed');
       } catch (jsonError) {
-        // Handle cases where response is not valid JSON
         setError(`Login failed: ${res.status} ${res.statusText}`);
       }
     }
@@ -56,6 +57,18 @@ export default function LoginPage() {
             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
           />
+        </div>
+        <div className="mb-4">
+          <label className="block mb-1 font-medium">Role</label>
+          <select
+            value={role}
+            onChange={e => setRole(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+            required
+          >
+            <option value="STUDENT">Student</option>
+            <option value="TEACHER">Teacher</option>
+          </select>
         </div>
         {error && <div className="text-red-500 mb-3 text-center">{error}</div>}
         <button
