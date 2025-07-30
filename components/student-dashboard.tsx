@@ -220,10 +220,9 @@ export default function StudentDashboard({ user, onLogout }: StudentDashboardPro
                   <div className="flex items-center space-x-4">
                     <Avatar className="h-20 w-20">
                       <AvatarFallback className="text-lg">
-                        {user.name
-                          .split(" ")
-                          .map((n: string) => n[0])
-                          .join("")}
+                        {user?.name
+                          ? user.name.split(" ").map((n: string) => n[0]).join("")
+                          : ""}
                       </AvatarFallback>
                     </Avatar>
                     <div>
